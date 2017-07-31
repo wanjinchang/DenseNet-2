@@ -11,15 +11,44 @@ class Trainer(object):
         self.config = config
         self.data_loader = data_loader
 
-        self.num_gpu = config.num_gpu
+        # network params
+        self.num_blocks = config.num_blocks
+        self.num_layers_total = config.num_layers_total
+        self.growth_rate = config.growth_rate
+        self.bottleneck = config.bottleneck
+        self.compression = config.compression
+
+        # training params
+        self.epochs = config.epochs
         self.lr = config.lr
         self.momentum = config.momentum
-        self.batch_size = config.batch_size
+        self.weight_decay = config.weight_decay
+        self.dropout_rate = config.dropout_rate
+
+        # other params
+        self.ckpt_dir = config.ckpt_dir
+        self.num_gpu = config.num_gpu
+        self.use_tensorboard = config.use_tensorboard
 
         # build model
-        self.model = DenseNet()
+        self.model = DenseNet(self.num_blocks, self.num_layers_total,
+                self.growth_rate, 10, self.bottleneck, self.dropout_rate, self.theta)
 
         if self.num_gpu > 0:
             self.model.cuda()
 
-        if self.load_path
+        if self.load_path:
+            self.load_model()
+
+
+    def train(self):
+
+    def test(self):
+
+    def save_model(self):
+
+    def load_model(self):
+
+    def adjust_learning_rate(optimizer, epoch):
+
+

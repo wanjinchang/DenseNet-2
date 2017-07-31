@@ -11,6 +11,8 @@ def add_argument_group(name):
 
 # network params
 net_arg = add_argument_group('Network')
+net_arg.add_argument('--num_blocks', type=int, default=3,
+                        help='# of Dense blocks to use in the network')
 net_arg.add_argument('--num_layers_total', type=int, default=40,
                         help='Total # of layers in the network')
 net_arg.add_argument('--growth_rate', type=int, default=12,
@@ -25,10 +27,12 @@ data_arg = add_argument_group('Data')
 # data_arg.add_argument('--dataset', type=str, default='CIFAR10')
 data_arg.add_argument('--batch_size', type=int, default=64,
                         help='# of images in each batch of data')
-data_arg.add_argument('--num_worker', type=int, default=8,
+data_arg.add_argument('--num_worker', type=int, default=1,
                         help='# of subprocesses to use for data loading')
 data_arg.add_argument('--augment', type=str2bool, default=True,
                         help='Whether to apply data augmentation or not')
+data_arg.add_argument('--shuffle', type=str2bool, default=True,
+                        help='Whether to shuffle the dataset after every epoch')
 data_arg.add_argument('--show_sample', type=str2bool, default=False,
                         help='Whether to visualize a sample grid of the data')
 
@@ -55,10 +59,12 @@ misc_arg.add_argument('--data_dir', type=str, default='./data',
                         help='Directory in which data is stored')
 misc_arg.add_argument('--ckpt_dir', type=str, default='./ckpt',
                         help='Directory in which to save model checkpoints')
-misc_arg.add_argument('--num_gpu', type=int, default=1,
-                        help="# of GPU's to use")
+misc_arg.add_argument('--num_gpu', type=int, default=0,
+                        help="# of GPU's to use. A value of 0 will run on the CPU")
 misc_arg.add_argument('--random_seed', type=int, default=4242,
                         help='Seed to ensure reproducibility')
+misc_arg.add_argument('--pin_memory', type=str2bool, default=True,
+                        help='Whether to copy tensors into CUDA pinned memory')
 misc_arg.add_argument('--use_tensorboard', type=str2bool, default=False,
                         help='Whether to use tensorboard for visualization')
 
