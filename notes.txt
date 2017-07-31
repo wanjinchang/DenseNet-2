@@ -1,0 +1,95 @@
+DenseNets
+---------
+
+- image x0 passed through a convolutional neural network.
+- network has L layers, each implementing a non-linear transformation H_L.
+- H_l can be a composite function of three consecutive operations, i.e. BatchNorm-ReLU-Conv.
+- we denote by xl the output of the lth layer.
+
+1. Dense Connectivity  [DONE]
+---------------------
+
+- each layer is connected to every subsequent layer. Consequently, the lth layer receives the feature maps of all preceding layers x0 up to x_l-1.
+
+xl = H_l([x0, x1, ..., x_(l-1)])
+
+Note that the feature-maps are concatenated. 
+
+2. Composite Function  [DONE]
+---------------------
+
+H_l will be composed of 3 operations: BN - ReLU - 3x3 Conv
+
+3. Transition Layers  [DONE]
+-----------------
+
+Network is divided into multiple densely connected blocks. Between these dense blocks, we sometimes have transition layers which are composed of: BN - 1x1 Conv - 2x2 AvgPool
+
+4. Growth Rate  [DONE]
+--------------
+
+- each function H_l produces k feature maps. Hence, at the l'th layer, there are (l-1)xk + k0 feature  maps (k0 is the number of channels in the input image).
+
+The authors limit k to 12.
+
+5. Bottleneck Layers  [DONE]
+--------------------
+
+A variant of the function H_l is used which employs a 1x1 convolution to reduce the number of input feature-maps (thus improving computational efficiency.)
+
+This variant is composed of the following:
+
+BN - ReLU - Conv 1x1 - BN - ReLU - Conv 3x3
+
+Each 1x1 conv reduces the input to 4k feature maps (4*12??)
+
+6. Compression  [DONE]
+--------------
+
+At transition layers, (between dense blocks), the number of feature maps can be reduced by creating a variant of the transition layer which generates floor(theta * m) feature maps if there are m feature maps.
+
+Theta is a number between 0 and 1 and is referred to as the compression factor.
+
+- DenseNet-C: theta less than 1.
+- DenseNet-BC: bottleneck and theta less than 1.
+
+7. Implementatino Details
+-------------------------
+
+3 dense blocks are used that each have an equal number of layers. Before entering the first dense block, a convolution with 16 (twice the growth rate for DenseNet-BC) output channels is performed on the input images. 
+
+In the convolutions, each side of the inputs is zero-padded by one pixel to the feature-map size fixed.  
+
+Two contiguous dense blocks have a transition layer in between composed of 1x1 conv and 2x2 average pooling.
+
+At the end of the last block, a global average pooling is performed and then a softmax classifier is attached.
+
+THe feature map sizes are 32x32 - 16x16 - 8x8.
+
+8. Dataset
+----------
+
+CIFAR-10 and CIFAR-100.
+
+45,000 train, 10,000 test and 5,000 validation.
+
+CIFAR-10+ CIFAR-100+
+
+1. zero-pad images with 4 pixels on each side
+2. randomly crop to 32x32
+3. horizontally mirror 1/2 of the images.
+
+For all, normalization is done with channel means and stds.
+
+9. Training
+-----------
+
+epochs = 40
+batch size = 64
+SGD, initial learning rate = 0.1, divided by 10 at 50% and 75% of the total number of traning epochs.
+
+weight decay of 10^-4, nesterov momentum, 0.9 without dampening. weight initialization of Kaiming He,
+
+For non augmented datasets, a dropout layer is adder after each convolution except the first one and the dropout rate = 0.2.
+
+- weight_decay: regularization term, penalizes big weights.
