@@ -58,3 +58,8 @@ def save_config(config):
 
     with open(param_path, 'w') as fp:
         json.dump(config.__dict__, fp, indent=4, sort_keys=True)
+
+def generate_batch_indices(num_samples, batch_size):
+    total_batch = int(np.ceil(num_samples / float(batch_size)))
+    batch_indices = [(i * batch_size, min(num_samples, (i + 1) * batch_size)) for i in range(0, total_batch)]
+    return total_batch, batch_indices

@@ -21,8 +21,15 @@ def main(config):
     kwargs['show_sample'] = config.show_sample
 
     # instantiate data loader
-    data_loader = get_loader(config.data_dir, config.is_train, 
-         config.batch_size, config.augment, **kwargs)
+    if config.is_train:
+        train_loader = get_loader(config.data_dir, 'train', 
+            config.batch_size, config.augment, **kwargs)
+        valid_loader = get_loader(config.data_dir, 'valid',
+            config.batch_size, config.augment, **kwargs)
+        data_loader = (train_loader, valid_loader)
+    else:
+        data_loader = get_loader(config.data_dir, 'test', 
+            config.batch_size, config.augment, **kwargs)
 
     # instantiate trainer
     trainer = Trainer(config, data_loader)
