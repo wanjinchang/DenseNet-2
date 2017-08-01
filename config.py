@@ -53,20 +53,22 @@ train_arg.add_argument('--dropout_rate', type=float, default=0.0,
 
 # other params
 misc_arg = add_argument_group('Misc')
+misc_arg.add_argument('--random_seed', type=int, default=4242,
+                        help='Seed to ensure reproducibility')
 misc_arg.add_argument('--load_path', type=str, default='',
                         help='Path to pretrained model. Should be specified if testing the model')
 misc_arg.add_argument('--data_dir', type=str, default='./data',
                         help='Directory in which data is stored')
 misc_arg.add_argument('--ckpt_dir', type=str, default='./ckpt',
                         help='Directory in which to save model checkpoints')
+misc_arg.add_argument('--logs_dir', type=str, default='./logs',
+                        help='Directory in which Tensorboard logs wil be stored')
 misc_arg.add_argument('--num_gpu', type=int, default=0,
                         help="# of GPU's to use. A value of 0 will run on the CPU")
-misc_arg.add_argument('--random_seed', type=int, default=4242,
-                        help='Seed to ensure reproducibility')
-misc_arg.add_argument('--pin_memory', type=str2bool, default=True,
-                        help='Whether to copy tensors into CUDA pinned memory')
 misc_arg.add_argument('--use_tensorboard', type=str2bool, default=False,
                         help='Whether to use tensorboard for visualization')
+misc_arg.add_argument('--resume', type=str2bool, default=True,
+                        help='Whether to resume training from most recent checkpoint')
 
 def get_config():
     config, unparsed = parser.parse_known_args()

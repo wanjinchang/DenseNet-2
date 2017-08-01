@@ -93,3 +93,12 @@ weight decay of 10^-4, nesterov momentum, 0.9 without dampening. weight initiali
 For non augmented datasets, a dropout layer is adder after each convolution except the first one and the dropout rate = 0.2.
 
 - weight_decay: regularization term, penalizes big weights.
+
+======================
+
+if train:
+    1. resume
+    2. start from scratch
+else:
+    1. load model
+    
