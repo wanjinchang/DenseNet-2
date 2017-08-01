@@ -41,13 +41,15 @@ class SubBlock(nn.Module):
             self.bn1 = nn.BatchNorm2d(in_channels_1)
             self.conv1 = nn.Conv2d(in_channels_1,
                                    out_channels_1,
-                                   kernel_size=1)
+                                   kernel_size=1,
+                                   bias=False)
 
         self.bn2 = nn.BatchNorm2d(in_channels_2)
         self.conv2 = nn.Conv2d(in_channels_2, 
                                out_channels_2, 
                                kernel_size=3, 
-                               padding=1)
+                               padding=1,
+                               bias=False)
 
     def forward(self, x):
         """
@@ -58,14 +60,14 @@ class SubBlock(nn.Module):
         if self.bottleneck:
             out = self.conv1(F.relu(self.bn1(x)))
             if self.p > 0:
-                out = F.dropout(out, p=self.p)
+                out = F.dropout(out, p=self.p, training=self.training)
             out = self.conv2(F.relu(self.bn2(out)))
             if self.p > 0:
-                out = F.dropout(out, p=self.p)
+                out = F.dropout(out, p=self.p, training=self.training)
         else:
             out = self.conv2(F.relu(self.bn2(x)))
             if self.p > 0:
-                out = F.dropout(out, p=self.p)  
+                out = F.dropout(out, p=self.p, training=self.training)  
         return torch.cat((x, out), 1)
 
 class DenseBlock(nn.Module):
@@ -94,10 +96,11 @@ class DenseBlock(nn.Module):
         layers = []
         for i in range(num_layers):
             cumul_channels = in_channels + i * growth_rate
+            print("\tLayer {} Input Channels: {}".format(i+1, cumul_channels))
             layers.append(SubBlock(cumul_channels, growth_rate, bottleneck, p))
 
         self.block = nn.Sequential(*layers)
-        self.out_channels = cumul_channels
+        self.out_channels = cumul_channels + growth_rate
 
     def forward(self, x):
         """
@@ -137,11 +140,12 @@ class TransitionLayer(nn.Module):
         self.bn = nn.BatchNorm2d(in_channels)
         self.conv = nn.Conv2d(in_channels, 
                               self.out_channels, 
-                              kernel_size=1)
+                              kernel_size=1,
+                              bias=False)
         self.pool = nn.AvgPool2d(2)
 
     def forward(self, x):
         out = self.pool(self.conv(F.relu(self.bn(x))))
         if self.p > 0:
-            out = F.dropout(out, p=self.p)
+            out = F.dropout(out, p=self.p, training=self.training)
         return out

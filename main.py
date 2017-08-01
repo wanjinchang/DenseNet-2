@@ -2,7 +2,7 @@ import torch
 
 from trainer import Trainer
 from config import get_config
-from data_loader import get_loader
+from data_loader import *
 from utils import prepare_dirs, save_config
 
 def main(config):
@@ -17,19 +17,15 @@ def main(config):
         torch.manual_seed(config.random_seed)
         kwargs = {}
 
-    kwargs['shuffle'] = config.shuffle
-    kwargs['show_sample'] = config.show_sample
-
-    # instantiate data loader
+    # instantiate data loaders
     if config.is_train:
-        train_loader = get_loader(config.data_dir, 'train', 
-            config.batch_size, config.augment, **kwargs)
-        valid_loader = get_loader(config.data_dir, 'valid',
-            config.batch_size, config.augment, **kwargs)
-        data_loader = (train_loader, valid_loader)
+        data_loader = get_train_valid_loader(config.data_dir,
+            config.batch_size, config.augment, config.random_seed,
+            config.valid_size, config.shuffle, config.show_sample,
+            **kwargs)
     else:
-        data_loader = get_loader(config.data_dir, 'test', 
-            config.batch_size, config.augment, **kwargs)
+        data_loader = get_test_loader(config.data_dir,
+            config.batch_size, config.shuffle, **kwargs)
 
     # instantiate trainer
     trainer = Trainer(config, data_loader)

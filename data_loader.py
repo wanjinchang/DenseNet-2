@@ -12,10 +12,10 @@ def get_train_valid_loader(data_dir,
                            augment,
                            random_seed,
                            valid_size=0.1,
-                           num_workers=4,
-                           pin_memory=False,
                            shuffle=True,
-                           show_sample=False):
+                           show_sample=False,
+                           num_workers=4,
+                           pin_memory=False):
     """
     Utility function for loading and returning train and valid 
     multi-process iterators over the CIFAR-10 dataset. A sample 
@@ -33,11 +33,11 @@ def get_train_valid_loader(data_dir,
     - valid_size: percentage split of the training set used for
       the validation set. Should be a float in the range [0, 1].
       In the paper, this number is set to 0.1. 
+    - shuffle: whether to shuffle the train/validation indices.
+    - show_sample: plot 9x9 sample grid of the dataset.
     - num_workers: number of subprocesses to use when loading the dataset.
     - pin_memory: whether to copy tensors into CUDA pinned memory. Set it to
       True if using GPU.
-    - shuffle: whether to shuffle the train/validation indices.
-    - show_sample: plot 9x9 sample grid of the dataset.
 
     Returns
     -------
@@ -45,7 +45,7 @@ def get_train_valid_loader(data_dir,
     - valid_loader: validation set iterator.
     """
     error_msg = "[!] valid_size should be in the range [0, 1]."
-    assert ((valid_size >= 0) && (valid_size <= 1)), error_msg
+    assert ((valid_size >= 0) and (valid_size <= 1)), error_msg
 
     # define transforms
     valid_transform = transforms.Compose([
@@ -71,7 +71,7 @@ def get_train_valid_loader(data_dir,
 
     num_train = len(train_dataset)
     indices = list(range(num_train))
-    split = np.floor(valid_size * num_train)
+    split = int(np.floor(valid_size * num_train))
 
     if shuffle == True:
         np.random.seed(random_seed)
@@ -108,9 +108,9 @@ def get_train_valid_loader(data_dir,
 
 def get_test_loader(data_dir, 
                     batch_size,
+                    shuffle=True,
                     num_workers=4,
-                    pin_memory=False, 
-                    shuffle=True):
+                    pin_memory=False):
     """
     Utility function for loading and returning a multi-process 
     test iterator over the CIFAR-10 dataset.
@@ -121,10 +121,10 @@ def get_test_loader(data_dir,
     ------
     - data_dir: path directory to the dataset.
     - batch_size: how many samples per batch to load.
+    - shuffle: whether to shuffle the dataset after every epoch.
     - num_workers: number of subprocessed to use when loading the dataset.
     - pin_memory: whether to copy tensors into CUDA pinned memory. Set it to
       True if using GPU.
-    - shuffle: whether to shuffle the dataset after every epoch.
 
     Returns
     -------

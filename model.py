@@ -84,7 +84,9 @@ class DenseNet(nn.Module):
         self.conv = nn.Conv2d(3,
                               out_channels, 
                               kernel_size=3,
-                              padding=1)
+                              padding=1,
+                              bias=False)
+        print("After Conv1: {}".format(out_channels))
         # ================================== #
 
         # ================================== #
@@ -101,9 +103,11 @@ class DenseNet(nn.Module):
 
             # transition block
             out_channels = dblock.out_channels
+            print("After Dense Block {}: {}".format(i+1, out_channels))
             trans = TransitionLayer(out_channels, theta, p)
             blocks.append(trans)
             out_channels = trans.out_channels
+            print("After Transition Layer {}: {}".format(i+1, out_channels))
         # ================================== #
 
         # ================================== #
@@ -121,7 +125,7 @@ class DenseNet(nn.Module):
         # ================================== #
         # global avg pooling, and fc
         self.pool = nn.AvgPool2d(2)
-        self.fc = nn.Linear(out_channels, num_classes)
+        self.fc = nn.Linear(self.out_channels, num_classes)
         # ================================== #
 
         # ================================== #
@@ -138,6 +142,15 @@ class DenseNet(nn.Module):
         """
         out = self.conv(x)
         out = self.block(out)
-        out = self.pool(out)
+        # out = self.pool(out)
+        # out = out.view(-1, self.out_channels)
+        # out = self.fc(out)
+        # print(out.size())
+        print("Before Pool: {}".format(out.size()))
+        out = F.avg_pool2d(out, 8)
+        print("After Pool: {}".format(out.size()))
+        out = out.view(-1, self.out_channels)
+        print("Before Flatten: {}".format(out.size()))
         out = self.fc(out)
+        print("After FC: {}".format(out.size()))
         return out
