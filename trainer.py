@@ -122,10 +122,10 @@ class Trainer(object):
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
 
-            # log to tensorboard
-            if self.use_tensorboard:
-                log_value('train_loss', losses.avg, (i+epoch*len(self.train_loader)))
-                log_value('train_acc', accs.avg, (i+epoch*len(self.train_loader)))
+            # # log to tensorboard
+            # if self.use_tensorboard:
+            #     log_value('train_loss', losses.avg, (i+epoch*len(self.train_loader)))
+            #     log_value('train_acc', accs.avg, (i+epoch*len(self.train_loader)))
 
             # compute gradients and update SGD
             self.optimizer.zero_grad()
@@ -144,6 +144,11 @@ class Trainer(object):
                     'Train Acc: {acc.val:.3f} ({acc.avg:.3f})'.format(
                         epoch, i, len(self.train_loader), batch_time=batch_time,
                         loss=losses, acc=accs))
+
+        # log to tensorboard
+        if self.use_tensorboard:
+            log_value('train_loss', losses.avg, epoch)
+            log_value('train_acc', accs.avg, epoch)
 
 
     def validate(self, epoch):
@@ -172,10 +177,10 @@ class Trainer(object):
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
 
-            # log to tensorboard
-            if self.use_tensorboard:
-                log_value('val_loss', losses.avg, (i+epoch*len(self.valid_loader)))
-                log_value('val_acc', accs.avg, (i+epoch*len(self.valid_loader)))
+            # # log to tensorboard
+            # if self.use_tensorboard:
+            #     log_value('val_loss', losses.avg, (i+epoch*len(self.valid_loader)))
+            #     log_value('val_acc', accs.avg, (i+epoch*len(self.valid_loader)))
 
             # measure elapsed time
             toc = time.time()
@@ -191,6 +196,12 @@ class Trainer(object):
                         loss=losses, acc=accs))
 
         print('[*] Valid Acc: {acc.avg:.3f}'.format(acc=accs))
+
+        # log to tensorboard
+        if self.use_tensorboard:
+            log_value('val_loss', losses.avg, epoch)
+            log_value('val_acc', accs.avg, epoch)
+
         return accs.avg
 
 
@@ -240,8 +251,8 @@ class Trainer(object):
         self.best_valid_acc = ckpt['best_valid_acc']
         self.model.load_state_dict(ckpt['state_dict'])
         
-        print("[*] Loaded checkpoint @ epoch {} with best valid acc of {:.3f}".format(
-                    ckpt['epoch'], ckpt['best_valid_acc']))
+        print("[*] Loaded {} checkpoint @ epoch {} with best valid acc of {:.3f}".format(
+                    filename, ckpt['epoch'], ckpt['best_valid_acc']))
 
     def adjust_learning_rate(self, epoch):
         """
