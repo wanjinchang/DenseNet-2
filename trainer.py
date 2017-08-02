@@ -64,7 +64,7 @@ class Trainer(object):
 
         # finally configure tensorboard logging
         if self.use_tensorboard:
-            configure(self.logs_dir + get_name())
+            configure(self.logs_dir + self.get_name())
 
     def train(self):
         # load the most recent checkpoint
@@ -272,8 +272,8 @@ class Trainer(object):
         will return DenseNet-BC-169.
         """
         if self.bottleneck:
-            return 'DenseNet-BC-{}'.format(self.total_num_layers)
-        return 'DenseNet-{}'.format(self.total_num_layers)
+            return 'DenseNet-BC-{}'.format(self.num_layers_total)
+        return 'DenseNet-{}'.format(self.num_layers_total)
 
     def accuracy(self, predicted, ground_truth):
         """
