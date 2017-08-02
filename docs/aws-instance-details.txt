@@ -1,0 +1,35 @@
+- AWS instance: Ubuntu Server 16.04 LTS (HVM), SSD Volume Type - ami-6e1a0117
+- GPU compute p2.x large
+- Configure spot instances
+- Increase root storage to 20 min, and add EBS storage of say 250 g for datasets
+- Add 4 security groups
+    - Custom TCP Rule - 8888 (Jupyter Notebook) - 0.0.0.0/0
+    - Custom TCP Rule - 6006 (Tensorboard) - 0.0.0.0/0
+    - SSH Rule - TCP - 22 - 0.0.0.0/0
+    - HTTPS - TCP - 443 - 0.0.0.0/0
+- Take note of 3 things
+    - Public DNS, i.e. ec2-52-39-222-217.us-west-2.compute.amazonaws.com
+    - IPv4 Public IP, i.e 52.39.222.217
+    - Where you saved the .pem file
+- SSH into the instance with the following commands:
+    - `chmod 600 <path to pem file>` 
+    - `ssh -v -i <path to pem file> ubuntu@<Public DNS>`
+    - ex: ssh -v -i ~/Downloads/aws-dL.pem ubuntu@ec2-52-39-222-217.us-west-2.compute.amazonaws.com
+- Copy script I created to the server using the following command: (use -r if copying folder)
+    - `scp -i <path to pem file> -r <path to install file (sh)> ubuntu@<Public DNS>:<path to destination on aws instance>`
+    - ex: scp -i ~/Downloads/aws-dL.pem -r ~/Desktop/install.sh ubuntu@ec2-52-39-222-217.us-west-2.compute.amazonaws.com:~/install.sh
+- Run the following 2 commands to run the script:
+    - chmod +x install.sh
+    - sudo ./install.sh
+- Reboot AWS instance and log back in
+- sudo apt-get install python3-pip
+- sudo pip3 install --upgrade pip
+- sudo pip3 install virtualenv numpy scipy matplotlib
+- mkdir envs
+- cd envs
+- virtualenv --system-site-packages deepL
+- source ~/envs/deepL/bin/activate
+- pip install http://download.pytorch.org/whl/cu80/torch-0.1.12.post2-cp35-cp35m-linux_x86_64.whl
+- pip install torchvision
+- pip install tensorboard_logger
+- pip install tqdm
