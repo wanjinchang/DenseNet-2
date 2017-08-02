@@ -62,7 +62,7 @@ misc_arg.add_argument('--data_dir', type=str, default='./data',
                         help='Directory in which data is stored')
 misc_arg.add_argument('--ckpt_dir', type=str, default='./ckpt',
                         help='Directory in which to save model checkpoints')
-misc_arg.add_argument('--logs_dir', type=str, default='./logs',
+misc_arg.add_argument('--logs_dir', type=str, default='./logs/',
                         help='Directory in which Tensorboard logs wil be stored')
 misc_arg.add_argument('--num_gpu', type=int, default=0,
                         help="# of GPU's to use. A value of 0 will run on the CPU")

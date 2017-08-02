@@ -64,9 +64,16 @@ class Trainer(object):
 
         # finally configure tensorboard logging
         if self.use_tensorboard:
-            configure(self.logs_dir + self.get_name())
+            tensorboard_dir = self.logs_dir + self.get_model_name()
+            print('[*] Saving tensorboard logs to {}'.format(tensorboard_dir))
+            if not os.path.exists(tensorboard_dir):
+                os.makedirs(tensorboard_dir)
+            configure(tensorboard_dir)
 
     def train(self):
+        # switch to train mode for dropout
+        self.model.train()
+
         # load the most recent checkpoint
         if self.resume:
             self.load_checkpoint(best=False)
@@ -79,7 +86,7 @@ class Trainer(object):
             self.train_one_epoch(epoch)
 
             # evaluate on validation set
-            valid_acc = self.validate()
+            valid_acc = self.validate(epoch)
 
             is_best = valid_acc > self.best_valid_acc
             self.best_valid_acc = max(valid_acc, self.best_valid_acc)
@@ -115,6 +122,11 @@ class Trainer(object):
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
 
+            # log to tensorboard
+            if self.use_tensorboard:
+                log_value('train_loss', losses.avg, (i+epoch*len(self.train_loader)))
+                log_value('train_acc', accs.avg, (i+epoch*len(self.train_loader)))
+
             # compute gradients and update SGD
             self.optimizer.zero_grad()
             loss.backward()
@@ -133,13 +145,8 @@ class Trainer(object):
                         epoch, i, len(self.train_loader), batch_time=batch_time,
                         loss=losses, acc=accs))
 
-        # log to tensorboard
-        if self.use_tensorboard:
-            log_value('train_loss', losses.avg, epoch)
-            log_value('train_acc', accs.avg, epoch)
 
-
-    def validate(self):
+    def validate(self, epoch):
         """
         Evaluate the model loss and accuracy on the validation
         set.
@@ -165,6 +172,11 @@ class Trainer(object):
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
 
+            # log to tensorboard
+            if self.use_tensorboard:
+                log_value('val_loss', losses.avg, (i+epoch*len(self.valid_loader)))
+                log_value('val_acc', accs.avg, (i+epoch*len(self.valid_loader)))
+
             # measure elapsed time
             toc = time.time()
             batch_time.update(toc-tic)
@@ -179,16 +191,10 @@ class Trainer(object):
                         loss=losses, acc=accs))
 
         print('[*] Valid Acc: {acc.avg:.3f}'.format(acc=accs))
-
-        # log to tensorboard
-        if self.use_tensorboard:
-            log_value('val_loss', losses.avg, epoch)
-            log_value('val_acc', accs.avg, epoch)
-
         return accs.avg
 
 
-    def save_checkpoint(self, state, is_best, filename='ckpt.pth.tar'):
+    def save_checkpoint(self, state, is_best):
         """
         Save a copy of the model so that it can be loaded at a future
         date. This function is used when the model is being evaluated 
@@ -199,12 +205,14 @@ class Trainer(object):
         """
         print("[*] Saving model to {}".format(self.ckpt_dir))
 
+        filename = self.get_model_name() + '_ckpt.pth.tar'
         ckpt_path = os.path.join(self.ckpt_dir, filename)
         torch.save(state, ckpt_path)
 
         if is_best:
+            filename = self.get_model_name() + '_model_best.pth.tar'
             shutil.copyfile(ckpt_path, 
-                os.path.join(self.ckpt_dir, 'model_best.pth.tar'))
+                os.path.join(self.ckpt_dir, filename))
 
     def load_checkpoint(self, best=False):
         """
@@ -221,9 +229,9 @@ class Trainer(object):
         """
         print("[*] Loading model from {}".format(self.ckpt_dir))
 
-        filename = 'ckpt.pth.tar'
+        filename = self.get_model_name() + '_ckpt.pth.tar'
         if best:
-            filename = 'model_best.pth.tar'
+            filename = self.get_model_name() + '_model_best.pth.tar'
         ckpt_path = os.path.join(self.ckpt_dir, filename)
         ckpt = torch.load(ckpt_path)
 
@@ -232,7 +240,8 @@ class Trainer(object):
         self.best_valid_acc = ckpt['best_valid_acc']
         self.model.load_state_dict(ckpt['state_dict'])
         
-        print("[*] Loaded checkpoint @ epoch {}".format(ckpt['epoch']))
+        print("[*] Loaded checkpoint @ epoch {} with best valid acc of {:.3f}".format(
+                    ckpt['epoch'], ckpt['best_valid_acc']))
 
     def adjust_learning_rate(self, epoch):
         """
@@ -258,7 +267,7 @@ class Trainer(object):
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
 
-    def get_name(self):
+    def get_model_name(self):
         """
         Returns the name of the model based on the configuration
         parameters.

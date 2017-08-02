@@ -52,10 +52,16 @@ def prepare_dirs(config):
             os.makedirs(path)
 
 def save_config(config):
-    param_path = os.path.join(config.ckpt_dir, "params.json")
+    filename = get_model_name(config) + '_params.json'
+    param_path = os.path.join(config.ckpt_dir, filename)
 
     print("[*] Model Checkpoint Dir: {}".format(config.ckpt_dir))
     print("[*] Param Path: {}".format(param_path))
 
     with open(param_path, 'w') as fp:
         json.dump(config.__dict__, fp, indent=4, sort_keys=True)
+
+def get_model_name(config):
+        if config.bottleneck:
+            return 'DenseNet-BC-{}'.format(config.num_layers_total)
+        return 'DenseNet-{}'.format(config.num_layers_total)

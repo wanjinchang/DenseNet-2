@@ -96,7 +96,6 @@ class DenseBlock(nn.Module):
         layers = []
         for i in range(num_layers):
             cumul_channels = in_channels + i * growth_rate
-            print("\tLayer {} Input Channels: {}".format(i+1, cumul_channels))
             layers.append(SubBlock(cumul_channels, growth_rate, bottleneck, p))
 
         self.block = nn.Sequential(*layers)
