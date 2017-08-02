@@ -47,19 +47,25 @@ def get_train_valid_loader(data_dir,
     error_msg = "[!] valid_size should be in the range [0, 1]."
     assert ((valid_size >= 0) and (valid_size <= 1)), error_msg
 
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+
     # define transforms
     valid_transform = transforms.Compose([
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            normalize
         ])
     if augment:
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
+            normalize
         ])
     else:
         train_transform = transforms.Compose([
-            transforms.ToTensor()
+            transforms.ToTensor(),
+            normalize
         ])
 
     # load the dataset
@@ -130,10 +136,13 @@ def get_test_loader(data_dir,
     -------
     - data_loader: test set iterator.
     """
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
 
     # define transform
     transform = transforms.Compose([
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        normalize
     ])
 
     dataset = datasets.CIFAR10(root=data_dir, 

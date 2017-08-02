@@ -29,6 +29,8 @@ class Trainer(object):
 
         # training params
         self.epochs = config.epochs
+        self.start_epoch = 0
+        self.best_valid_acc = 0.
         self.lr = config.lr
         self.momentum = config.momentum
         self.weight_decay = config.weight_decay
@@ -47,15 +49,16 @@ class Trainer(object):
         self.model = DenseNet(self.num_blocks, self.num_layers_total,
                 self.growth_rate, 10, self.bottleneck, self.dropout_rate, self.theta)
 
-        print('Number of model parameters: {:,}'.format(
+        print('[*] Number of model parameters: {:,}'.format(
             sum([p.data.nelement() for p in self.model.parameters()])))
 
         # define loss and optimizer
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(model.parameters(), self.lr,
+        self.optimizer = torch.optim.SGD(self.model.parameters(), self.lr,
                 momentum=self.momentum, weight_decay=self.weight_decay)
 
         if self.num_gpu > 0:
+            # model = torch.nn.DataParallel(model).cuda()
             self.model.cuda()
             self.criterion.cuda()
 
@@ -70,22 +73,22 @@ class Trainer(object):
 
         for epoch in trange(self.start_epoch, self.epochs):
             # decay learning rate
-            adjust_learning_rate(epoch)
+            self.adjust_learning_rate(epoch)
 
             # train for 1 epoch
-            self.train_one_epoch()
+            self.train_one_epoch(epoch)
 
             # evaluate on validation set
             valid_acc = self.validate()
 
-            is_best = valid_acc > best_valid_acc
-            best_valid_acc = max(valid_acc, best_valid_acc)
+            is_best = valid_acc > self.best_valid_acc
+            self.best_valid_acc = max(valid_acc, self.best_valid_acc)
             self.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_valid_acc': best_valid_acc}, is_best)
+                'state_dict': self.model.state_dict(),
+                'best_valid_acc': self.best_valid_acc}, is_best)
 
-    def train_one_epoch(self):
+    def train_one_epoch(self, epoch):
         """
         Train the model on 1 epoch of the training set. An epoch
         corresponds to one full pass through the entire training
@@ -107,15 +110,15 @@ class Trainer(object):
             output = self.model(input_var)
 
             # compute loss & accuracy 
-            loss = criterion(output, target_var)
-            acc = accuracy(output.data, target)
-            losses.update(loss.data[0], image.size[0])
-            accs.update(acc, image.size[0])
+            loss = self.criterion(output, target_var)
+            acc = self.accuracy(output.data, target)
+            losses.update(loss.data[0], image.size()[0])
+            accs.update(acc, image.size()[0])
 
             # compute gradients and update SGD
-            optimizer.zero_grad()
+            self.optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
+            self.optimizer.step()
 
             # measure elapsed time
             toc = time.time()
@@ -124,9 +127,9 @@ class Trainer(object):
             # print to screen
             if i % self.print_freq == 0:
                 print('Epoch: [{0}][{1}/{2}]\t'
-                    'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    'Acc {acc.val:.3f} ({acc.avg:.3f})'.format(
+                    'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                    'Train Loss: {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Train Acc: {acc.val:.3f} ({acc.avg:.3f})'.format(
                         epoch, i, len(self.train_loader), batch_time=batch_time,
                         loss=losses, acc=accs))
 
@@ -136,7 +139,7 @@ class Trainer(object):
             log_value('train_acc', accs.avg, epoch)
 
 
-    def validation(self):
+    def validate(self):
         """
         Evaluate the model loss and accuracy on the validation
         set.
@@ -157,10 +160,10 @@ class Trainer(object):
             output = self.model(input_var)
 
             # compute loss & accuracy 
-            loss = criterion(output, target_var)
-            acc = accuracy(output.data, target)
-            losses.update(loss.data[0], image.size[0])
-            accs.update(acc, image.size[0])
+            loss = self.criterion(output, target_var)
+            acc = self.accuracy(output.data, target)
+            losses.update(loss.data[0], image.size()[0])
+            accs.update(acc, image.size()[0])
 
             # measure elapsed time
             toc = time.time()
@@ -169,13 +172,13 @@ class Trainer(object):
             # print to screen
             if i % self.print_freq == 0:
                 print('Valid: [{0}/{1}]\t'
-                    'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    'Acc {acc.val:.3f} ({acc.avg:.3f})'.format(
-                        epoch, i, len(self.valid_loader), batch_time=batch_time,
+                    'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                    'Valid Loss: {loss.val:.4f} ({loss.avg:.4f})\t'
+                    'Valid Acc: {acc.val:.3f} ({acc.avg:.3f})'.format(
+                        i, len(self.valid_loader), batch_time=batch_time,
                         loss=losses, acc=accs))
 
-        print('[*] Acc {acc.avg:.3f}'.format(acc=accs))
+        print('[*] Valid Acc: {acc.avg:.3f}'.format(acc=accs))
 
         # log to tensorboard
         if self.use_tensorboard:
@@ -226,9 +229,8 @@ class Trainer(object):
 
         # load variables from checkpoint
         self.start_epoch = ckpt['epoch']
-        self.best_prec1 = ckpt['best_prec1']
+        self.best_valid_acc = ckpt['best_valid_acc']
         self.model.load_state_dict(ckpt['state_dict'])
-        self.optimizer.load_state_dict(ckpt['optimizer'])
         
         print("[*] Loaded checkpoint @ epoch {}".format(ckpt['epoch']))
 
@@ -273,7 +275,7 @@ class Trainer(object):
             return 'DenseNet-BC-{}'.format(self.total_num_layers)
         return 'DenseNet-{}'.format(self.total_num_layers)
 
-    def accuracy(predicted, ground_truth):
+    def accuracy(self, predicted, ground_truth):
         """
         Utility function for calculating the accuracy of the model.
 
@@ -292,19 +294,19 @@ class Trainer(object):
         acc = 100 * (correct / total)
         return acc
 
-    class AverageMeter(object):
-        """Computes and stores the average and current value"""
-        def __init__(self):
-            self.reset()
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+    def __init__(self):
+        self.reset()
 
-        def reset(self):
-            self.val = 0
-            self.avg = 0
-            self.sum = 0
-            self.count = 0
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
 
-        def update(self, val, n=1):
-            self.val = val
-            self.sum += val * n
-            self.count += n
-            self.avg = self.sum / self.count
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
