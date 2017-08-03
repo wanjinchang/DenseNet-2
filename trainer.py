@@ -95,6 +95,45 @@ class Trainer(object):
                 'state_dict': self.model.state_dict(),
                 'best_valid_acc': self.best_valid_acc}, is_best)
 
+    def test(self):
+        # switch to test mode for dropout
+        self.model.eval()
+
+        accs = AverageMeter()
+        batch_time = AverageMeter()
+
+        # load the best checkpoint
+        self.load_checkpoint(best=True)
+
+        tic = time.time()
+        for i, (image, target) in enumerate(self.test_loader):
+            if self.num_gpu > 0:
+                image = image.cuda()
+                target = target.cuda(async=True)
+            input_var = torch.autograd.Variable(image)
+            target_var = torch.autograd.Variable(target)
+
+            # forward pass
+            output = self.model(input_var)
+
+            # compute loss & accuracy 
+            acc = self.accuracy(output.data, target)
+            accs.update(acc, image.size()[0])
+
+            # measure elapsed time
+            toc = time.time()
+            batch_time.update(toc-tic)
+
+            # print to screen
+            if i % self.print_freq == 0:
+                print('Test: [{0}/{1}]\t'
+                    'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                    'Test Acc: {acc.val:.3f} ({acc.avg:.3f})'.format(
+                        i, len(self.valid_loader), batch_time=batch_time,
+                        acc=accs))
+
+            print('[*] Test Acc: {acc.avg:.3f}'.format(acc=accs))
+
     def train_one_epoch(self, epoch):
         """
         Train the model on 1 epoch of the training set. An epoch
@@ -204,7 +243,6 @@ class Trainer(object):
 
         return accs.avg
 
-
     def save_checkpoint(self, state, is_best):
         """
         Save a copy of the model so that it can be loaded at a future
@@ -270,7 +308,7 @@ class Trainer(object):
         elif epoch >= sched1 and epoch <= sched2:
             lr = self.lr / 10
         else:
-            lr = self.lr / 10
+            lr = self.lr / 100
 
         # log to tensorboard
         if self.use_tensorboard:
