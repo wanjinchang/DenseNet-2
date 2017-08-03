@@ -129,10 +129,10 @@ class Trainer(object):
                 print('Test: [{0}/{1}]\t'
                     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                     'Test Acc: {acc.val:.3f} ({acc.avg:.3f})'.format(
-                        i, len(self.valid_loader), batch_time=batch_time,
+                        i, len(self.test_loader), batch_time=batch_time,
                         acc=accs))
 
-            print('[*] Test Acc: {acc.avg:.3f}'.format(acc=accs))
+        print('[*] Test Acc: {acc.avg:.3f}'.format(acc=accs))
 
     def train_one_epoch(self, epoch):
         """
