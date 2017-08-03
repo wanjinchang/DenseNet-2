@@ -137,8 +137,7 @@ class TransitionLayer(nn.Module):
         self.bn = nn.BatchNorm2d(in_channels)
         self.conv = nn.Conv2d(in_channels, 
                               self.out_channels, 
-                              kernel_size=1,
-                              bias=False)
+                              kernel_size=1)
         self.pool = nn.AvgPool2d(2)
 
     def forward(self, x):
