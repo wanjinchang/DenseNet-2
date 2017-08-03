@@ -128,7 +128,7 @@ def get_test_loader(data_dir,
     - data_dir: path directory to the dataset.
     - batch_size: how many samples per batch to load.
     - shuffle: whether to shuffle the dataset after every epoch.
-    - num_workers: number of subprocessed to use when loading the dataset.
+    - num_workers: number of subprocesses to use when loading the dataset.
     - pin_memory: whether to copy tensors into CUDA pinned memory. Set it to
       True if using GPU.
 

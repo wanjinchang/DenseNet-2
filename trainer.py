@@ -224,6 +224,7 @@ class Trainer(object):
             filename = self.get_model_name() + '_model_best.pth.tar'
             shutil.copyfile(ckpt_path, 
                 os.path.join(self.ckpt_dir, filename))
+            print("[*] ==== Best Valid Acc Achieved ====")
 
     def load_checkpoint(self, best=False):
         """
@@ -267,9 +268,9 @@ class Trainer(object):
         if epoch < sched1:
             lr = self.lr
         elif epoch >= sched1 and epoch <= sched2:
-            lr /= 10
+            lr = self.lr / 10
         else:
-            lr /= 10
+            lr = self.lr / 10
 
         # log to tensorboard
         if self.use_tensorboard:
