@@ -41,15 +41,13 @@ class SubBlock(nn.Module):
             self.bn1 = nn.BatchNorm2d(in_channels_1)
             self.conv1 = nn.Conv2d(in_channels_1,
                                    out_channels_1,
-                                   kernel_size=1,
-                                   bias=False)
+                                   kernel_size=1)
 
         self.bn2 = nn.BatchNorm2d(in_channels_2)
         self.conv2 = nn.Conv2d(in_channels_2, 
                                out_channels_2, 
                                kernel_size=3, 
-                               padding=1,
-                               bias=False)
+                               padding=1)
 
     def forward(self, x):
         """

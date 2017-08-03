@@ -84,8 +84,7 @@ class DenseNet(nn.Module):
         self.conv = nn.Conv2d(3,
                               out_channels, 
                               kernel_size=3,
-                              padding=1,
-                              bias=False)
+                              padding=1)
         # ================================== #
 
         # ================================== #
@@ -120,7 +119,7 @@ class DenseNet(nn.Module):
         # ================================== #
 
         # ================================== #
-        # global avg pooling, and fc
+        # fully-connected layer
         self.fc = nn.Linear(self.out_channels, num_classes)
         # ================================== #
 

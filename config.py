@@ -25,7 +25,7 @@ net_arg.add_argument('--compression', type=float, default=1.0,
 # data params
 data_arg = add_argument_group('Data')
 data_arg.add_argument('--valid_size', type=float, default=0.1,
-                        help='% split of training set used for validation set')
+                        help='Proportion of training set used for validation')
 data_arg.add_argument('--batch_size', type=int, default=64,
                         help='# of images in each batch of data')
 data_arg.add_argument('--num_worker', type=int, default=1,
@@ -68,7 +68,7 @@ misc_arg.add_argument('--num_gpu', type=int, default=0,
                         help="# of GPU's to use. A value of 0 will run on the CPU")
 misc_arg.add_argument('--use_tensorboard', type=str2bool, default=False,
                         help='Whether to use tensorboard for visualization')
-misc_arg.add_argument('--resume', type=str2bool, default=True,
+misc_arg.add_argument('--resume', type=str2bool, default=False,
                         help='Whether to resume training from most recent checkpoint')
 misc_arg.add_argument('--print_freq', type=int, default=10,
                         help='How frequently to display training details on screen')
