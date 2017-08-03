@@ -25,12 +25,12 @@ Note that you can use tensorboard to view losses and accuracy by setting the `us
 
 Finally, to see all possible options, run:
 
-```python
+```
 python main.py --help
 ```
 which will print:
 
-```python
+```
 usage: main.py [-h] [--num_blocks NUM_BLOCKS]
                [--num_layers_total NUM_LAYERS_TOTAL]
                [--growth_rate GROWTH_RATE] [--bottleneck BOTTLENECK]
@@ -106,7 +106,7 @@ You can edit the default values of these arguments in the `config.py` file.
 
 Here's an example command for training DenseNet-BC-100 with a growth rate of 12, data augmentation, tensorboard visualization and with a GPU:
 
-```python
+```
 python main.py \
 --num_layers_total=100 \
 --bottleneck=True \
@@ -128,4 +128,4 @@ From looking at the losses and accuracies, it seems decreasing the learning rate
 ## References
 
 * Thanks to [Taehoon Kim](https://github.com/carpedm20) for inspiring the general file hierarchy and layout of this project.
-* Thanks to the PyTorch [ImageNet](https://github.com/pytorch/examples/tree/master/imagenet) training example which helped me code the Trainer class.
+* Thanks to the PyTorch ImageNet [training example](https://github.com/pytorch/examples/tree/master/imagenet) for helping me code the Trainer class.
