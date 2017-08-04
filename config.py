@@ -26,7 +26,7 @@ net_arg.add_argument('--compression', type=float, default=1.0,
 data_arg = add_argument_group('Data')
 data_arg.add_argument('--dataset', type=str, default='CIFAR10',
                         help='Which dataset to work with. Can be \
-                        CIFAR10, CIFAR100 or Imagenet')
+                              CIFAR10, CIFAR100 or Imagenet')
 data_arg.add_argument('--valid_size', type=float, default=0.1,
                         help='Proportion of training set used for validation')
 data_arg.add_argument('--batch_size', type=int, default=64,
@@ -52,14 +52,12 @@ train_arg.add_argument('--momentum', type=float, default=0.9,
                             help='Nesterov momentum value')
 train_arg.add_argument('--weight_decay', type=float, default=1e-4,
                             help='weight decay penalty')
+train_arg.add_argument('--lr_decay', '--list', type=str, default='0.5,0.75',
+                            help='List containing fractions of the total number \
+                                  of epochs in which the learning rate is decayed. \
+                                  Enter empty string if you want a constant lr.')
 train_arg.add_argument('--dropout_rate', type=float, default=0.0,
                             help='Dropout rate used with non-augmented datasets')
-train_arg.add_argument('--lr_decay', type=str2bool, default=True,
-                            help='Whether to anneal the learning rate. Must \
-                            provide ')
-train_arg.add_argument('--lr_sched', '--list', type=str, default='0.5,0.75',
-                            help='List containing fractions of the total number \
-                            of epochs in which the learning rate is decayed')
 
 # other params
 misc_arg = add_argument_group('Misc')

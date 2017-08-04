@@ -14,9 +14,9 @@ from tensorboard_logger import configure, log_value
 class Trainer(object):
     """
     The Trainer class encapsulates all the logic necessary for 
-    training the DenseNet model. It performs SGD to update the 
-    weights of the model given hyperparameters constraints
-    provided by the user in the config file.
+    training the DenseNet model. It use SGD to update the weights 
+    of the model given hyperparameters constraints provided by the 
+    user in the config file.
     """
     def __init__(self, config, data_loader):
         """
@@ -46,11 +46,15 @@ class Trainer(object):
         self.start_epoch = 0
         self.best_valid_acc = 0.
         self.init_lr = config.init_lr
-        self.lr_sched = [float(x) for x in config.lr_sched.split(',')]
+        self.lr = self.init_lr
+        self.is_decay = True
         self.momentum = config.momentum
         self.weight_decay = config.weight_decay
         self.dropout_rate = config.dropout_rate
-        self.lr = self.init_lr
+        if config.lr_sched == '':
+            self.is_decay = False
+        else:
+            self.lr_decay = [float(x) for x in config.lr_sched.split(',')]
 
         # other params
         self.ckpt_dir = config.ckpt_dir
@@ -60,9 +64,12 @@ class Trainer(object):
         self.resume = config.resume
         self.print_freq = config.print_freq
         self.dataset = config.dataset
-        self.num_classes = 10
-        if self.dataset == 'cifar100':
+        if self.dataset == 'cifar10':
+            self.num_classes = 10
+        elif self.dataset == 'cifar100':
             self.num_classes = 100
+        else:
+            self.num_classes = 1000
 
         # build densenet model
         self.model = DenseNet(self.num_blocks, self.num_layers_total,
@@ -91,13 +98,7 @@ class Trainer(object):
 
     def train(self):
         """
-        Train the model using Stochastic Gradient Descent. 
-        
-        If annealing is enabled, the learning rate is cut 
-        down by a factor of 10 at times specified by the
-        `lr_sched` parameter. `lr_sched` is a tuple of 2
-        floats (t1, t2) which decay the learning rate at
-        a fraction of the total number of training epochs.
+        Train the model on the training set. 
 
         A checkpoint of the model is saved after each epoch
         and if the validation accuracy is improved upon,
@@ -111,8 +112,10 @@ class Trainer(object):
             self.load_checkpoint(best=False)
 
         for epoch in trange(self.start_epoch, self.epochs):
+            
             # decay learning rate
-            self.anneal_learning_rate(epoch)
+            if self.decay:
+                self.anneal_learning_rate(epoch)
 
             # train for 1 epoch
             self.train_one_epoch(epoch)
@@ -129,9 +132,10 @@ class Trainer(object):
 
     def test(self):
         """
-        Test the model on the held-out test data. This function
-        should only be called once at the end of the training
-        phase.
+        Test the model on the held-out test data. 
+
+        This function should only be called at the very
+        end once the model has finished training.
         """
         # switch to test mode for dropout
         self.model.eval()
@@ -173,11 +177,12 @@ class Trainer(object):
 
     def train_one_epoch(self, epoch):
         """
-        Train the model on 1 epoch of the training set. 
+        Train the model for 1 epoch of the training set. 
 
         An epoch corresponds to one full pass through the entire 
-        training set in successive mini-batches. This is called 
-        by train() and should not be called manually.
+        training set in successive mini-batches. 
+
+        This is used by train() and should not be called manually.
         """
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -226,8 +231,7 @@ class Trainer(object):
 
     def validate(self, epoch):
         """
-        Evaluate the model loss and accuracy on the validation
-        set.
+        Evaluate the model on the validation set.
         """
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -324,12 +328,14 @@ class Trainer(object):
 
     def anneal_learning_rate(self, epoch):
         """
-        Learning rate decay.
+        This function decays the learning rate at 2 instances.
 
-        The initial learning rate is divided by 10 at 2 different 
-        percentages  of the total number of training epochs. In the
-        paper, the default values are 50% and 75% of the number of 
-        epochs (300).
+        - The initial learning rate is divided by 10 at
+          t1*epochs.
+        - It is further divided by 10 at t2*epochs. 
+
+        t1 and t2 are floats specified by the user. The default
+        values used by the authors of the paper are 0.5 and 0.75.
         """
         sched1 = int(self.lr_sched[0] * self.epochs)
         sched2 = int(self.lr_sched[1] * self.epochs)
@@ -349,13 +355,14 @@ class Trainer(object):
         Returns the name of the model based on the configuration
         parameters.
 
-        The name will take the form DenseNet-Y-X, where X is the total
-        number of layers specified by `config.total_num_layers` and
-        Y is either an empty string or BC based on whether `config.bottleneck`
-        is set to false or true respectively.
+        The name will take the form DenseNet-X-Y-Z where:
 
-        For example, given 169 layers with bottleneck, this function
-        will return DenseNet-BC-169.
+        - X: total number of layers specified by `config.total_num_layers`.
+        - Y: can be BC or an empty string specified by `config.bottleneck`.
+        - Z: name of the dataset specified by `config.dataset`.
+
+        For example, given 169 layers with bottleneck on CIFAR-10, this 
+        function will output `DenseNet-BC-169-cifar10`.
         """
         if self.bottleneck:
             return 'DenseNet-BC-{}-{}'.format(self.num_layers_total,
