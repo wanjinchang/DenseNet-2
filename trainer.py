@@ -15,7 +15,7 @@ class Trainer(object):
     """
     The Trainer class encapsulates all the logic necessary for 
     training the DenseNet model. It performs SGD to update the 
-    weights of the model under hyperparameters constraints
+    weights of the model given hyperparameters constraints
     provided by the user in the config file.
     """
     def __init__(self, config, data_loader):
@@ -45,10 +45,12 @@ class Trainer(object):
         self.epochs = config.epochs
         self.start_epoch = 0
         self.best_valid_acc = 0.
-        self.lr = config.lr
+        self.init_lr = config.init_lr
+        self.lr_sched = [float(x) for x in config.lr_sched.split(',')]
         self.momentum = config.momentum
         self.weight_decay = config.weight_decay
         self.dropout_rate = config.dropout_rate
+        self.lr = self.init_lr
 
         # other params
         self.ckpt_dir = config.ckpt_dir
@@ -72,7 +74,7 @@ class Trainer(object):
 
         # define loss and optimizer
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), self.lr,
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.init_lr,
                 momentum=self.momentum, weight_decay=self.weight_decay)
 
         if self.num_gpu > 0:
@@ -90,14 +92,16 @@ class Trainer(object):
     def train(self):
         """
         Train the model using Stochastic Gradient Descent. 
-
-        Concretely, in each training epoch, the model is
-        trained on the training set and then evaluated on 
-        the validation set.
+        
+        If annealing is enabled, the learning rate is cut 
+        down by a factor of 10 at times specified by the
+        `lr_sched` parameter. `lr_sched` is a tuple of 2
+        floats (t1, t2) which decay the learning rate at
+        a fraction of the total number of training epochs.
 
         A checkpoint of the model is saved after each epoch
         and if the validation accuracy is improved upon,
-        a separate save file is created for use on the test set.
+        a separate ckpt is created for use on the test set.
         """
         # switch to train mode for dropout
         self.model.train()
@@ -108,7 +112,7 @@ class Trainer(object):
 
         for epoch in trange(self.start_epoch, self.epochs):
             # decay learning rate
-            self.adjust_learning_rate(epoch)
+            self.anneal_learning_rate(epoch)
 
             # train for 1 epoch
             self.train_one_epoch(epoch)
@@ -318,29 +322,27 @@ class Trainer(object):
         print("[*] Loaded {} checkpoint @ epoch {} with best valid acc of {:.3f}".format(
                     filename, ckpt['epoch'], ckpt['best_valid_acc']))
 
-    def adjust_learning_rate(self, epoch):
+    def anneal_learning_rate(self, epoch):
         """
-        Learning rate schedule defined in the paper.
+        Learning rate decay.
 
-        The initial learning rate is set to 0.1, and is 
-        divided by 10 at 50% and 75% of the total number of 
-        training epochs.
+        The initial learning rate is divided by 10 at 2 different 
+        percentages  of the total number of training epochs. In the
+        paper, the default values are 50% and 75% of the number of 
+        epochs (300).
         """
-        sched1 = int(0.5 * self.epochs)
-        sched2 = int(0.75 * self.epochs)
-        if epoch < sched1:
-            lr = self.lr
-        elif epoch >= sched1 and epoch <= sched2:
-            lr = self.lr / 10
-        else:
-            lr = self.lr / 100
+        sched1 = int(self.lr_sched[0] * self.epochs)
+        sched2 = int(self.lr_sched[1] * self.epochs)
+
+        self.lr = self.init_lr * (0.1 ** (epoch // sched1)) \
+                               * (0.1 ** (epoch // sched2))
 
         # log to tensorboard
         if self.use_tensorboard:
-            log_value('learning_rate', lr, epoch)
+            log_value('learning_rate', self.lr, epoch)
 
         for param_group in self.optimizer.param_groups:
-            param_group['lr'] = lr
+            param_group['lr'] = self.lr
 
     def get_model_name(self):
         """

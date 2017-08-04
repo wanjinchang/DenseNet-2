@@ -46,7 +46,7 @@ train_arg.add_argument('--is_train', type=str2bool, default=True,
                             help='Whether to train or test the model')
 train_arg.add_argument('--epochs', type=int, default=300,
                             help='# of epochs to train for')
-train_arg.add_argument('--lr', type=float, default=0.1,
+train_arg.add_argument('--init_lr', type=float, default=0.1,
                             help='Initial learning rate value')
 train_arg.add_argument('--momentum', type=float, default=0.9,
                             help='Nesterov momentum value')
@@ -54,6 +54,12 @@ train_arg.add_argument('--weight_decay', type=float, default=1e-4,
                             help='weight decay penalty')
 train_arg.add_argument('--dropout_rate', type=float, default=0.0,
                             help='Dropout rate used with non-augmented datasets')
+train_arg.add_argument('--lr_decay', type=str2bool, default=True,
+                            help='Whether to anneal the learning rate. Must \
+                            provide ')
+train_arg.add_argument('--lr_sched', '--list', type=str, default='0.5,0.75',
+                            help='List containing fractions of the total number \
+                            of epochs in which the learning rate is decayed')
 
 # other params
 misc_arg = add_argument_group('Misc')
