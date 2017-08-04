@@ -57,10 +57,14 @@ class Trainer(object):
         self.use_tensorboard = config.use_tensorboard
         self.resume = config.resume
         self.print_freq = config.print_freq
+        self.num_classes = 10
+        if config.dataset == 'cifar100':
+            self.num_classes = 100
 
         # build densenet model
         self.model = DenseNet(self.num_blocks, self.num_layers_total,
-                self.growth_rate, 10, self.bottleneck, self.dropout_rate, self.theta)
+            self.growth_rate, self.num_classes, self.bottleneck, 
+                self.dropout_rate, self.theta)
 
         print('[*] Number of model parameters: {:,}'.format(
             sum([p.data.nelement() for p in self.model.parameters()])))
