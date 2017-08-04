@@ -103,10 +103,11 @@ Misc:
 
 You can edit the default values of these arguments in the `config.py` file.
 
-Here's an example command for training DenseNet-BC-100 with a growth rate of 12, data augmentation, tensorboard visualization and with a GPU:
+Here's an example command for training a DenseNet-BC-100 architecture with a growth rate of 12, data augmentation, tensorboard visualization, with a GPU and on the CIFAR-10 dataset:
 
 ```
 python main.py \
+--dataset='cifar10' \
 --num_layers_total=100 \
 --bottleneck=True \
 --compression=0.5 \
@@ -119,7 +120,7 @@ python main.py \
 I'm currently still training DenseNet-40 and DenseNet-BC-100 variants on CIFAR-10 with data augmentation so the final test results are not available, but here are some tensorboard visualizations so far.
 
 <p align="center">
- <img src="./assets/losses.png" alt="Drawing" width="80%">
+ <img src="./assets/losses.png" alt="Drawing" width="70%">
 </p> 
 
 From looking at the losses and accuracies, it seems decreasing the learning rate at earlier times than mentioned in the paper can shorten the training time by a large factor. I'll be testing this intuition and report my findings at a later date.
