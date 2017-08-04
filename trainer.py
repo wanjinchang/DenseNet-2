@@ -39,7 +39,6 @@ class Trainer(object):
         # other params
         self.ckpt_dir = config.ckpt_dir
         self.logs_dir = config.logs_dir
-        self.load_path = config.load_path
         self.num_gpu = config.num_gpu
         self.use_tensorboard = config.use_tensorboard
         self.resume = config.resume
