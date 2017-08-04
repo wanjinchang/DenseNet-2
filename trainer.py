@@ -57,8 +57,9 @@ class Trainer(object):
         self.use_tensorboard = config.use_tensorboard
         self.resume = config.resume
         self.print_freq = config.print_freq
+        self.dataset = config.dataset
         self.num_classes = 10
-        if config.dataset == 'cifar100':
+        if self.dataset == 'cifar100':
             self.num_classes = 100
 
         # build densenet model
@@ -355,8 +356,10 @@ class Trainer(object):
         will return DenseNet-BC-169.
         """
         if self.bottleneck:
-            return 'DenseNet-BC-{}'.format(self.num_layers_total)
-        return 'DenseNet-{}'.format(self.num_layers_total)
+            return 'DenseNet-BC-{}-{}'.format(self.num_layers_total,
+                self.dataset)
+        return 'DenseNet-{}-{}'.format(self.num_layers_total,
+            self.dataset)
 
     def accuracy(self, predicted, ground_truth):
         """

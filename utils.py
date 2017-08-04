@@ -72,5 +72,7 @@ def save_config(config):
 
 def get_model_name(config):
         if config.bottleneck:
-            return 'DenseNet-BC-{}'.format(config.num_layers_total)
-        return 'DenseNet-{}'.format(config.num_layers_total)
+            return 'DenseNet-BC-{}-{}'.format(
+                config.num_layers_total, config.dataset)
+        return 'DenseNet-{}-{}'.format(
+            config.num_layers_total, config.dataset)

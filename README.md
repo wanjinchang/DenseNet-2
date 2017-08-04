@@ -15,7 +15,7 @@ This is a PyTorch implementation of the DenseNet architecture as described in [D
 
 ## Usage
 
-This implementation currently supports training on the CIFAR-10 dataset (support for CIFAR-100 and ImageNet coming soon).
+This implementation currently supports training on the CIFAR-10 and CIFAR-100 datasets (support for ImageNet coming soon).
 
 Basically, when training a model, you should specify whether to use the bottleneck variant of the dense block or not `--bottleneck` and if so, what compression factor to use `--compression`. You should also specify the total number of layers `num_layers_total` in the model. By default, data augmentation is performed which means no dropout, so if you choose to turn that off, you should specify a desired dropout rate `--dropout_rate`.
 
@@ -34,14 +34,15 @@ which will print:
 usage: main.py [-h] [--num_blocks NUM_BLOCKS]
                [--num_layers_total NUM_LAYERS_TOTAL]
                [--growth_rate GROWTH_RATE] [--bottleneck BOTTLENECK]
-               [--compression COMPRESSION] [--valid_size VALID_SIZE]
-               [--batch_size BATCH_SIZE] [--num_worker NUM_WORKER]
-               [--augment AUGMENT] [--shuffle SHUFFLE]
-               [--show_sample SHOW_SAMPLE] [--is_train IS_TRAIN]
-               [--epochs EPOCHS] [--lr LR] [--momentum MOMENTUM]
-               [--weight_decay WEIGHT_DECAY] [--dropout_rate DROPOUT_RATE]
-               [--random_seed RANDOM_SEED] [--data_dir DATA_DIR]
-               [--ckpt_dir CKPT_DIR] [--logs_dir LOGS_DIR] [--num_gpu NUM_GPU]
+               [--compression COMPRESSION] [--dataset DATASET]
+               [--valid_size VALID_SIZE] [--batch_size BATCH_SIZE]
+               [--num_worker NUM_WORKER] [--augment AUGMENT]
+               [--shuffle SHUFFLE] [--show_sample SHOW_SAMPLE]
+               [--is_train IS_TRAIN] [--epochs EPOCHS] [--lr LR]
+               [--momentum MOMENTUM] [--weight_decay WEIGHT_DECAY]
+               [--dropout_rate DROPOUT_RATE] [--random_seed RANDOM_SEED]
+               [--data_dir DATA_DIR] [--ckpt_dir CKPT_DIR]
+               [--logs_dir LOGS_DIR] [--num_gpu NUM_GPU]
                [--use_tensorboard USE_TENSORBOARD] [--resume RESUME]
                [--print_freq PRINT_FREQ]
 
@@ -63,6 +64,8 @@ Network:
                         Compression factor theta in the range [0, 1]
 
 Data:
+  --dataset DATASET     Which dataset to work with. Can be CIFAR10, CIFAR100
+                        or Imagenet
   --valid_size VALID_SIZE
                         Proportion of training set used for validation
   --batch_size BATCH_SIZE
