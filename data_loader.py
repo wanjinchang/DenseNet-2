@@ -8,6 +8,7 @@ from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
 def get_train_valid_loader(data_dir,
+                           name,
                            batch_size,
                            augment,
                            random_seed,
@@ -18,7 +19,7 @@ def get_train_valid_loader(data_dir,
                            pin_memory=False):
     """
     Utility function for loading and returning train and valid 
-    multi-process iterators over the CIFAR-10 dataset. A sample 
+    multi-process iterators over the desired dataset. A sample 
     9x9 grid of the images can be optionally displayed.
 
     If using CUDA, num_workers should be set to 1 and pin_memory to True.
@@ -26,6 +27,8 @@ def get_train_valid_loader(data_dir,
     Params
     ------
     - data_dir: path directory to the dataset.
+    - name: string specifying which dataset to load. Can be `cifar10`,
+      or `cifar100`.
     - batch_size: how many samples per batch to load.
     - augment: whether to apply the data augmentation scheme
       mentioned in the paper. Only applied on the train split.
@@ -44,8 +47,10 @@ def get_train_valid_loader(data_dir,
     - train_loader: training set iterator.
     - valid_loader: validation set iterator.
     """
-    error_msg = "[!] valid_size should be in the range [0, 1]."
-    assert ((valid_size >= 0) and (valid_size <= 1)), error_msg
+    error_msg1 = "[!] valid_size should be in the range [0, 1]."
+    error_msg2 = "[!] Invalid dataset name."
+    assert ((valid_size >= 0) and (valid_size <= 1)), error_msg1
+    assert name in ['cifar10', 'cifar100'], error_msg2
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
@@ -69,11 +74,18 @@ def get_train_valid_loader(data_dir,
         ])
 
     # load the dataset
-    train_dataset = datasets.CIFAR10(root=data_dir, train=True, 
-                download=True, transform=train_transform)
+    if name == 'cifar10':
+        train_dataset = datasets.CIFAR10(root=data_dir, train=True, 
+                    download=True, transform=train_transform)
 
-    valid_dataset = datasets.CIFAR10(root=data_dir, train=True, 
-                download=True, transform=valid_transform)
+        valid_dataset = datasets.CIFAR10(root=data_dir, train=True, 
+                    download=True, transform=valid_transform)
+    else:
+        train_dataset = datasets.CIFAR100(root=data_dir, train=True, 
+            download=True, transform=train_transform)
+
+        valid_dataset = datasets.CIFAR100(root=data_dir, train=True, 
+            download=True, transform=valid_transform)
 
     num_train = len(train_dataset)
     indices = list(range(num_train))
@@ -108,11 +120,12 @@ def get_train_valid_loader(data_dir,
         images, labels = data_iter.next()
         X = images.numpy()
         X = np.transpose(X, [0, 2, 3, 1])
-        plot_images(X, labels)
+        plot_images(X, labels, name)
 
     return (train_loader, valid_loader)
 
-def get_test_loader(data_dir, 
+def get_test_loader(data_dir,
+                    name,
                     batch_size,
                     shuffle=True,
                     num_workers=4,
@@ -126,6 +139,8 @@ def get_test_loader(data_dir,
     Params
     ------
     - data_dir: path directory to the dataset.
+    - name: string specifying which dataset to load. Can be `cifar10`,
+      or `cifar100`.
     - batch_size: how many samples per batch to load.
     - shuffle: whether to shuffle the dataset after every epoch.
     - num_workers: number of subprocesses to use when loading the dataset.
@@ -145,10 +160,16 @@ def get_test_loader(data_dir,
         normalize
     ])
 
-    dataset = datasets.CIFAR10(root=data_dir, 
-                               train=False, 
-                               download=True,
-                               transform=transform)
+    if name == 'cifar10':
+        dataset = datasets.CIFAR10(root=data_dir, 
+                                   train=False, 
+                                   download=True,
+                                   transform=transform)
+    else:
+        dataset = datasets.CIFAR100(root=data_dir, 
+                                    train=False, 
+                                    download=True,
+                                    transform=transform)
 
     data_loader = torch.utils.data.DataLoader(dataset, 
                                               batch_size=batch_size, 

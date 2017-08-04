@@ -12,7 +12,21 @@ from model import DenseNet
 from tensorboard_logger import configure, log_value
 
 class Trainer(object):
+    """
+    The Trainer class encapsulates all the logic necessary for 
+    training the DenseNet model. It performs SGD to update the 
+    weights of the model under hyperparameters constraints
+    provided by the user in the config file.
+    """
     def __init__(self, config, data_loader):
+        """
+        Construct a new Trainer instance.
+
+        Params
+        ------
+        - config: object containing command line arguments.
+        - data_loader: data iterator
+        """
         self.config = config
         if config.is_train:
             self.train_loader = data_loader[0]
@@ -57,7 +71,6 @@ class Trainer(object):
                 momentum=self.momentum, weight_decay=self.weight_decay)
 
         if self.num_gpu > 0:
-            # model = torch.nn.DataParallel(model).cuda()
             self.model.cuda()
             self.criterion.cuda()
 
@@ -70,6 +83,17 @@ class Trainer(object):
             configure(tensorboard_dir)
 
     def train(self):
+        """
+        Train the model using Stochastic Gradient Descent. 
+
+        Concretely, in each training epoch, the model is
+        trained on the training set and then evaluated on 
+        the validation set.
+
+        A checkpoint of the model is saved after each epoch
+        and if the validation accuracy is improved upon,
+        a separate save file is created for use on the test set.
+        """
         # switch to train mode for dropout
         self.model.train()
 
@@ -95,6 +119,11 @@ class Trainer(object):
                 'best_valid_acc': self.best_valid_acc}, is_best)
 
     def test(self):
+        """
+        Test the model on the held-out test data. This function
+        should only be called once at the end of the training
+        phase.
+        """
         # switch to test mode for dropout
         self.model.eval()
 
@@ -135,9 +164,11 @@ class Trainer(object):
 
     def train_one_epoch(self, epoch):
         """
-        Train the model on 1 epoch of the training set. An epoch
-        corresponds to one full pass through the entire training
-        set in successive mini-batches.
+        Train the model on 1 epoch of the training set. 
+
+        An epoch corresponds to one full pass through the entire 
+        training set in successive mini-batches. This is called 
+        by train() and should not be called manually.
         """
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -159,11 +190,6 @@ class Trainer(object):
             acc = self.accuracy(output.data, target)
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
-
-            # # log to tensorboard
-            # if self.use_tensorboard:
-            #     log_value('train_loss', losses.avg, (i+epoch*len(self.train_loader)))
-            #     log_value('train_acc', accs.avg, (i+epoch*len(self.train_loader)))
 
             # compute gradients and update SGD
             self.optimizer.zero_grad()
@@ -214,11 +240,6 @@ class Trainer(object):
             acc = self.accuracy(output.data, target)
             losses.update(loss.data[0], image.size()[0])
             accs.update(acc, image.size()[0])
-
-            # # log to tensorboard
-            # if self.use_tensorboard:
-            #     log_value('val_loss', losses.avg, (i+epoch*len(self.valid_loader)))
-            #     log_value('val_acc', accs.avg, (i+epoch*len(self.valid_loader)))
 
             # measure elapsed time
             toc = time.time()

@@ -24,6 +24,9 @@ net_arg.add_argument('--compression', type=float, default=1.0,
 
 # data params
 data_arg = add_argument_group('Data')
+data_arg.add_argument('--dataset', type=str, default='CIFAR10',
+                        help='Which dataset to work with. Can be \
+                        CIFAR10, CIFAR100 or Imagenet')
 data_arg.add_argument('--valid_size', type=float, default=0.1,
                         help='Proportion of training set used for validation')
 data_arg.add_argument('--batch_size', type=int, default=64,

@@ -5,20 +5,30 @@ import numpy as np
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-label_names = [
-    'airplane',
-    'automobile',
-    'bird',
-    'cat',
-    'deer',
-    'dog',
-    'frog',
-    'horse',
-    'ship',
-    'truck'
+cifar10_label_names = ['airplane', 'automobile',
+    'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
+    'ship', 'truck'
 ]
 
-def plot_images(images, cls_true, cls_pred=None):
+cifar100_label_names = [
+    'apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle', 
+    'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel', 
+    'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock', 
+    'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur', 
+    'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 
+    'house', 'kangaroo', 'keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion',
+    'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain', 'mouse',
+    'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree', 'pear',
+    'pickup_truck', 'pine_tree', 'plain', 'plate', 'poppy', 'porcupine',
+    'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose',
+    'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake',
+    'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table',
+    'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout',
+    'tulip', 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman',
+    'worm'
+]
+
+def plot_images(images, cls_true, name):
 
     assert len(images) == len(cls_true) == 9
 
@@ -28,15 +38,14 @@ def plot_images(images, cls_true, cls_pred=None):
     for i, ax in enumerate(axes.flat):
         # plot the image
         ax.imshow(images[i, :, :, :], interpolation='spline16')
+
         # get its equivalent class name
-        cls_true_name = label_names[cls_true[i]]
-            
-        if cls_pred is None:
-            xlabel = "{0} ({1})".format(cls_true_name, cls_true[i])
+        if name == 'cifar10':
+            cls_true_name = cifar10_label_names[cls_true[i]]
         else:
-            cls_pred_name = label_names[cls_pred[i]]
-            xlabel = "True: {0}\nPred: {1}".format(cls_true_name, cls_pred_name)
-            
+            cls_true_name = cifar100_label_names[cls_true[i]]
+
+        xlabel = "{0} ({1})".format(cls_true_name, cls_true[i])  
         ax.set_xlabel(xlabel)
         ax.set_xticks([])
         ax.set_yticks([])

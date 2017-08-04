@@ -20,12 +20,13 @@ def main(config):
     # instantiate data loaders
     if config.is_train:
         data_loader = get_train_valid_loader(config.data_dir,
-            config.batch_size, config.augment, config.random_seed,
-            config.valid_size, config.shuffle, config.show_sample,
-            **kwargs)
+            config.dataset, config.batch_size, config.augment, 
+            config.random_seed, config.valid_size, config.shuffle, 
+            config.show_sample, **kwargs)
     else:
         data_loader = get_test_loader(config.data_dir,
-            config.batch_size, config.shuffle, **kwargs)
+            config.dataset, config.batch_size, config.shuffle, 
+            **kwargs)
 
     # instantiate trainer
     trainer = Trainer(config, data_loader)
