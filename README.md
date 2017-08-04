@@ -40,9 +40,8 @@ usage: main.py [-h] [--num_blocks NUM_BLOCKS]
                [--show_sample SHOW_SAMPLE] [--is_train IS_TRAIN]
                [--epochs EPOCHS] [--lr LR] [--momentum MOMENTUM]
                [--weight_decay WEIGHT_DECAY] [--dropout_rate DROPOUT_RATE]
-               [--random_seed RANDOM_SEED] [--load_path LOAD_PATH]
-               [--data_dir DATA_DIR] [--ckpt_dir CKPT_DIR]
-               [--logs_dir LOGS_DIR] [--num_gpu NUM_GPU]
+               [--random_seed RANDOM_SEED] [--data_dir DATA_DIR]
+               [--ckpt_dir CKPT_DIR] [--logs_dir LOGS_DIR] [--num_gpu NUM_GPU]
                [--use_tensorboard USE_TENSORBOARD] [--resume RESUME]
                [--print_freq PRINT_FREQ]
 
@@ -88,9 +87,6 @@ Training:
 Misc:
   --random_seed RANDOM_SEED
                         Seed to ensure reproducibility
-  --load_path LOAD_PATH
-                        Path to pretrained model. Should be specified if
-                        testing the model
   --data_dir DATA_DIR   Directory in which data is stored
   --ckpt_dir CKPT_DIR   Directory in which to save model checkpoints
   --logs_dir LOGS_DIR   Directory in which Tensorboard logs wil be stored
